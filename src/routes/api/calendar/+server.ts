@@ -22,10 +22,10 @@ export async function GET({ url }) {
         const calendar = google.calendar({ version: 'v3', auth: jwtClient });
 
         const year = parseInt(url.searchParams.get('year') || new Date().getFullYear().toString());
-        const month = parseInt(url.searchParams.get('month') || (new Date().getMonth() + 1).toString());
+        const month = parseInt(url.searchParams.get('month') || (new Date().getMonth()).toString());
 
         const startDate = new Date(year, month - 1, 1).toISOString();
-        const endDate = new Date(year, month, 0).toISOString();
+        const endDate = new Date(year+1, month, 1).toISOString();
 
         console.log('Fetching calendar events with ID:', config.GOOGLE_CALENDAR_ID); // Debug log
 
@@ -36,6 +36,10 @@ export async function GET({ url }) {
             singleEvents: true,
             orderBy: 'startTime',
         });
+
+        const responseJson = json(response.data.items);
+
+        console.log('Calendar events fetched:', responseJson); // Debug log
 
         return json(response.data.items);
     } catch (error) {

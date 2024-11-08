@@ -4,6 +4,7 @@
   import { getContentByType } from '$lib/api/contentful';
   import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
   import type { Document } from '@contentful/rich-text-types';
+  import Calendar from '$lib/components/Calendar.svelte';
 
   let events: any[] = [];
   let bio: any = null;
@@ -26,10 +27,12 @@
           const [eventsData, bioData] = await Promise.all([
               getCalendarEvents(
                   new Date().getFullYear(),
-                  new Date().getMonth() + 1
+                  new Date().getMonth()
               ),
               getContentByType('bio')
           ]);
+
+          console.log('eventsData: ', eventsData);
 
           events = eventsData;
           bio = bioData;
@@ -68,21 +71,10 @@
           </div>
       </div>
 
-      <!-- Calendar Events Section -->
+      <!-- Calendar Section -->
       <div class="mt-12">
-          <h2 class="text-2xl font-bold mb-6">Calendar Events</h2>
-          <ul class="space-y-4">
-              {#each events as event}
-                  <li class="bg-white p-4 rounded-lg shadow">
-                      <div class="flex flex-col gap-2">
-                          <span class="font-medium">{event.summary}</span>
-                          <span class="text-gray-600">
-                              {new Date(event.start.dateTime || event.start.date).toLocaleString()}
-                          </span>
-                      </div>
-                  </li>
-              {/each}
-          </ul>
+        <h2 class="text-2xl font-bold mb-6">Running Calendar</h2>
+        <Calendar {events} />
       </div>
   {:else}
       <div class="text-center py-12">
