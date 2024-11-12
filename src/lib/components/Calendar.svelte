@@ -75,6 +75,12 @@
         }
         return 'All Day';
     }
+
+    // Format time 
+    function formatTime(date: any): string{
+        const start = new Date(date);
+        return `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
     
     // Month names for header
     const monthNames = [
@@ -90,7 +96,7 @@
     }
 </script>
 
-<div class="bg-white rounded-lg shadow">
+<div id="calendar" class="bg-white rounded-lg shadow">
     <!-- Calendar Header -->
     <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
         <div class="flex items-center">
@@ -150,7 +156,7 @@
                             class="text-xs p-1 mb-1 rounded bg-blue-100 text-blue-800 truncate"
                             title={event.summary}
                         >
-                            {event.summary}
+                            {event.summary} - {event.start.dateTime ? formatTime(event.start.dateTime) : 'All Day'}
                         </div>
                     {/each}
                 </div>

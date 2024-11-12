@@ -27,8 +27,6 @@ export async function GET({ url }) {
         const startDate = new Date(year, month - 1, 1).toISOString();
         const endDate = new Date(year+1, month, 1).toISOString();
 
-        console.log('Fetching calendar events with ID:', config.GOOGLE_CALENDAR_ID); // Debug log
-
         const response = await calendar.events.list({
             calendarId: config.GOOGLE_CALENDAR_ID,
             timeMin: startDate,
@@ -36,10 +34,6 @@ export async function GET({ url }) {
             singleEvents: true,
             orderBy: 'startTime',
         });
-
-        const responseJson = json(response.data.items);
-
-        console.log('Calendar events fetched:', responseJson); // Debug log
 
         return json(response.data.items);
     } catch (error) {

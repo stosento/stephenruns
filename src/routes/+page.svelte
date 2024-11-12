@@ -3,8 +3,10 @@
   import { getCalendarEvents } from '$lib/api/googlecalendar';
   import { getContentByType } from '$lib/api/contentful';
   import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
+  import { BLOCKS, MARKS } from '@contentful/rich-text-types';
   import type { Document } from '@contentful/rich-text-types';
   import Calendar from '$lib/components/Calendar.svelte';
+	import Header from '$lib/components/Header.svelte';
 
   let events: any[] = [];
   let bio: any = null;
@@ -12,15 +14,50 @@
 
   // Function to render rich text content safely
   function renderRichText(document: Document): string {
-      const options = {
-          renderNode: {
-              // You can add custom rendering for specific node types here
-              // For example, custom rendering for assets, entries, etc.
+  let imageCount = 0;
+  let isProcessingImages = false;
+  let imageBuffer = [];
+
+  const options = {
+    renderNode: {
+      [BLOCKS.EMBEDDED_ASSET]: (node) => {
+        const { file, title, description } = node.data.target.fields;
+        if (file.contentType.startsWith('image/')) {
+          imageCount++;
+          const imageHtml = `
+            <figure class="w-1/4 p-2 mb-2 mt-0">
+              <img
+                src="${file.url}"
+                alt="${description || title || 'Content image'}"
+                class="w-full h-auto rounded-lg shadow-md"
+              />
+            </figure>
+          `;
+          
+          if (!isProcessingImages) {
+            isProcessingImages = true;
+            imageBuffer = [imageHtml];
+            return `<div class="flex flex-wrap justify-center -mx-2">${imageHtml}`;
+          } else {
+            isProcessingImages = false;
+            return `${imageHtml}</div>`;
           }
-      };
-      
-      return documentToHtmlString(document, options);
-  }
+        }
+        return '';
+      },
+      [BLOCKS.PARAGRAPH]: (node, next) => {
+        return `<p>${next(node.content)}</p>`;
+      },
+    },
+    renderMark: {
+      [MARKS.BOLD]: (text) => `<strong>${text}</strong>`,
+      [MARKS.ITALIC]: (text) => `<em>${text}</em>`,
+      [MARKS.UNDERLINE]: (text) => `<u>${text}</u>`,
+    }
+  };
+  
+  return documentToHtmlString(document, options);
+}
 
   onMount(async () => {
       try {
@@ -32,8 +69,6 @@
               getContentByType('bio')
           ]);
 
-          console.log('eventsData: ', eventsData);
-
           events = eventsData;
           bio = bioData;
       } catch (error) {
@@ -44,6 +79,8 @@
   });
 </script>
 
+<Header />
+
 <div class="container mx-auto px-4 py-8">
   {#if loading}
       <div class="text-center py-12">
@@ -52,19 +89,6 @@
   {:else if bio}
       <!-- Bio Section -->
       <div class="mb-12">
-          
-        {#if bio.fields.image}
-            <div class="mb-8 flex justify-center">
-                <div class="w-full max-w-md sm:max-w-xs"> <!-- Adjusted size here -->
-                    <img 
-                        src={bio.fields.image.fields.file.url} 
-                        alt="Profile"
-                        class="w-full h-auto rounded-lg shadow-md object-cover"
-                    />
-                </div>
-            </div>
-        {/if}
-          
           <!-- Rich Text Content -->
           <div class="max-w-3xl mx-auto prose">
               {@html renderRichText(bio.fields.content)}
@@ -73,7 +97,6 @@
 
       <!-- Calendar Section -->
       <div class="mt-12">
-        <h2 class="text-2xl font-bold mb-6">Running Calendar</h2>
         <Calendar {events} />
       </div>
   {:else}
