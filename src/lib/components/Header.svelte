@@ -20,7 +20,7 @@
         <!-- Logo/Brand -->
         <div class="flex items-center">
           <a href="/" class="text-white text-2xl font-bold">
-            RunWithStephen
+            stephen<span class="text-blue-200">runs</span>
           </a>
         </div>
   

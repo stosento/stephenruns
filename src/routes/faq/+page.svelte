@@ -1,138 +1,87 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { getCalendarEvents } from '$lib/api/googlecalendar';
     import { getContentByType } from '$lib/api/contentful';
     import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
     import { BLOCKS, MARKS } from '@contentful/rich-text-types';
     import type { Document } from '@contentful/rich-text-types';
-    import Calendar from '$lib/components/Calendar.svelte';
-      import Header from '$lib/components/Header.svelte';
+    import Header from '$lib/components/Header.svelte';
   
-    let events: any[] = [];
-    let bio: any = null;
+    let faqs: any[] = [];
     let loading = true;
   
     // Function to render rich text content safely
     function renderRichText(document: Document): string {
-    let imageCount = 0;
-    let isProcessingImages = false;
-    let imageBuffer = [];
-  
-    const options = {
-      renderNode: {
-        [BLOCKS.EMBEDDED_ASSET]: (node) => {
-          const { file, title, description } = node.data.target.fields;
-          if (file.contentType.startsWith('image/')) {
-            imageCount++;
-            const imageHtml = `
-              <figure class="w-1/4 p-2 mb-2 mt-0">
-                <img
-                  src="${file.url}"
-                  alt="${description || title || 'Content image'}"
-                  class="w-full h-auto rounded-lg shadow-md"
-                />
-              </figure>
-            `;
-            
-            if (!isProcessingImages) {
-              isProcessingImages = true;
-              imageBuffer = [imageHtml];
-              return `<div class="flex flex-wrap justify-center -mx-2">${imageHtml}`;
-            } else {
-              isProcessingImages = false;
-              return `${imageHtml}</div>`;
+        const options = {
+            renderNode: {
+                [BLOCKS.PARAGRAPH]: (node, next) => {
+                    return `<p class="mt-2">${next(node.content)}</p>`;
+                },
+            },
+            renderMark: {
+                [MARKS.BOLD]: (text) => `<strong>${text}</strong>`,
+                [MARKS.ITALIC]: (text) => `<em>${text}</em>`,
+                [MARKS.UNDERLINE]: (text) => `<u>${text}</u>`,
             }
-          }
-          return '';
-        },
-        [BLOCKS.PARAGRAPH]: (node, next) => {
-          return `<p>${next(node.content)}</p>`;
-        },
-      },
-      renderMark: {
-        [MARKS.BOLD]: (text) => `<strong>${text}</strong>`,
-        [MARKS.ITALIC]: (text) => `<em>${text}</em>`,
-        [MARKS.UNDERLINE]: (text) => `<u>${text}</u>`,
-      }
-    };
-    
-    return documentToHtmlString(document, options);
-  }
+        };
+        
+        return documentToHtmlString(document, options);
+    }
   
     onMount(async () => {
         try {
-            const [eventsData, bioData] = await Promise.all([
-                getCalendarEvents(
-                    new Date().getFullYear(),
-                    new Date().getMonth()
-                ),
-                getContentByType('bio')
-            ]);
-  
-            events = eventsData;
-            bio = bioData;
+            const response = await getContentByType('faq');
+            faqs = response.fields.items || [];
+            console.log('FAQ content:', faqs);
+            loading = false;
         } catch (error) {
             console.error('Error loading content:', error);
-        } finally {
             loading = false;
         }
     });
-  </script>
+</script>
   
-  <Header />
+<Header />
   
-  <div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8">
     {#if loading}
         <div class="text-center py-12">
             <p class="text-gray-600">Loading...</p>
         </div>
+    {:else if faqs.length > 0}
+        <div class="max-w-2xl mx-auto space-y-4">
+            {#each faqs as faq}
+                <div class="border rounded-lg overflow-hidden">
+                    <details class="group">
+                        <summary class="flex justify-between items-center p-4 cursor-pointer bg-white hover:bg-gray-50">
+                            <h3 class="text-lg font-medium text-gray-900">
+                                {faq.fields.question}
+                            </h3>
+                            <span class="ml-6 flex-shrink-0">
+                                <svg class="w-6 h-6 group-open:rotate-180 transition-transform duration-200" 
+                                     fill="none" 
+                                     viewBox="0 0 24 24" 
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" 
+                                          stroke-linejoin="round" 
+                                          stroke-width="2" 
+                                          d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
+                        </summary>
+                        <div class="px-4 pb-4 prose max-w-none">
+                            {@html renderRichText(faq.fields.answer)}
+                        </div>
+                    </details>
+                </div>
+            {/each}
+        </div>
     {:else}
         <div class="text-center py-12">
-            <p class="text-red-600">Error loading bio content</p>
+            <p class="text-red-600">No FAQ items found</p>
         </div>
     {/if}
-  </div>
+</div>
   
-  <style>
-    /* Base styles for rich text content */
-    :global(.prose) {
-        @apply text-gray-900 leading-relaxed;
-    }
-    
-    :global(.prose p) {
-        @apply mb-2;
-        @apply mt-2;
-    }
-    
-    :global(.prose h1) {
-        @apply text-3xl font-bold mb-4;
-    }
-    
-    :global(.prose h2) {
-        @apply text-2xl font-bold mb-3;
-    }
-    
-    :global(.prose h3) {
-        @apply text-xl font-bold mb-2;
-    }
-    
-    :global(.prose ul) {
-        @apply list-disc pl-5 mb-4;
-    }
-    
-    :global(.prose ol) {
-        @apply list-decimal pl-5 mb-4;
-    }
-    
-    :global(.prose li) {
-        @apply mb-1;
-    }
-    
-    :global(.prose a) {
-        @apply text-blue-600 hover:text-blue-800 underline;
-    }
-    
-    :global(.prose blockquote) {
-        @apply border-l-4 border-gray-300 pl-4 italic my-4;
-    }
-  </style>
+<style>
+    /* Base styles remain the same */
+</style>
