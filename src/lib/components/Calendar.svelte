@@ -9,6 +9,13 @@
     let currentDate = new Date();
     $: currentMonth = currentDate.getMonth();
     $: currentYear = currentDate.getFullYear();
+
+    // Get today's date for highlighting
+    const today = new Date();
+    $: isToday = (day: number) => 
+        today.getDate() === day && 
+        today.getMonth() === currentMonth && 
+        today.getFullYear() === currentYear;
     
     // Modal state
     let showModal = false;
@@ -142,11 +149,11 @@
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div 
-                    class="aspect-square p-2 border border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                    class="aspect-square p-2 border border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors {isToday(day) ? 'bg-green-50' : ''}"
                     on:click={() => handleDayClick(day)}
                 >
                     <div class="text-sm mb-1 flex justify-between items-center">
-                        <span>{day}</span>
+                        <span class={isToday(day) ? 'font-semibold' : ''}>{day}</span>
                         {#if dayEvents.length > 0}
                             <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                         {/if}
@@ -225,6 +232,9 @@
                                     {event.description}
                                 </p>
                             {/if}
+                            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                Add Me to Run
+                              </button>
                         </div>
                     </div>
                 {/each}

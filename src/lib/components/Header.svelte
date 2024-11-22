@@ -9,7 +9,7 @@
     const navLinks: NavLink[] = [
       { href: '/', label: 'Home' },
       { href: '#calendar', label: 'Calendar' },
-      { href: '/routes', label: 'Routes' },
+      { href: '/locations', label: 'Routes' },
       { href: '/faq', label: 'FAQ' }
     ];
   </script>

@@ -90,7 +90,7 @@
       <!-- Bio Section -->
       <div class="mb-12">
           <!-- Rich Text Content -->
-          <div class="max-w-3xl mx-auto prose">
+          <div class="max-w-4xl mx-auto prose">
               {@html renderRichText(bio.fields.content)}
           </div>
       </div>
