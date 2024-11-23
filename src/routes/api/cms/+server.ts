@@ -15,6 +15,7 @@ function getContentfulClient() {
 export async function GET({ url }) {
     try {
         const contentType = url.searchParams.get('type');
+        const limit = url.searchParams.get('limit');
         
         if (!contentType) {
             return json(
@@ -27,7 +28,8 @@ export async function GET({ url }) {
 
         const response = await client.getEntries({
             content_type: contentType,
-            limit: 1
+            // If limit is 1, use it, otherwise don't set a limit to get all items
+            ...(limit === '1' ? { limit: 1 } : {})
         });
 
         // If no items found, return 404
@@ -38,14 +40,20 @@ export async function GET({ url }) {
             );
         }
 
-        // Return just the first item
-        return json(response.items[0]);
+        // If limit is 1, return just the first item
+        // Otherwise return all items
+        if (limit === '1') {
+            return json(response.items[0]);
+        } else {
+            return json(response.items);
+        }
 
     } catch (error) {
         console.error('CMS Error Details:', {
             message: error.message,
             stack: error.stack,
-            contentType: url.searchParams.get('type')
+            contentType: url.searchParams.get('type'),
+            limit: url.searchParams.get('limit')
         });
 
         return json(

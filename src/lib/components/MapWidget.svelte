@@ -85,6 +85,8 @@
     }
     
     onMount(() => {
+      console.log('Locations:', locations);
+      console.log('apiKey:', apiKey);        
       if (locations.length > 0 && apiKey) {
         initMap();
       }
