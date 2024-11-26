@@ -66,7 +66,7 @@
                   new Date().getFullYear(),
                   new Date().getMonth()
               ),
-              getContentByType('bio')
+              getContentByType('bio', true)
           ]);
 
           events = eventsData;
@@ -91,7 +91,7 @@
       <div class="mb-12">
           <!-- Rich Text Content -->
           <div class="max-w-4xl mx-auto prose">
-              {@html renderRichText(bio.fields.content)}
+              {@html renderRichText(bio?.fields?.content)}
           </div>
       </div>
 

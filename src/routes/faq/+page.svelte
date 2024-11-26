@@ -29,7 +29,7 @@
   
     onMount(async () => {
         try {
-            const response = await getContentByType('faq');
+            const response = await getContentByType('faq', true);
             faqs = response.fields.items || [];
             console.log('FAQ content:', faqs);
             loading = false;
@@ -54,7 +54,7 @@
                     <details class="group">
                         <summary class="flex justify-between items-center p-4 cursor-pointer bg-white hover:bg-gray-50">
                             <h3 class="text-lg font-medium text-gray-900">
-                                {faq.fields.question}
+                                {faq?.fields?.question}
                             </h3>
                             <span class="ml-6 flex-shrink-0">
                                 <svg class="w-6 h-6 group-open:rotate-180 transition-transform duration-200" 
@@ -69,7 +69,7 @@
                             </span>
                         </summary>
                         <div class="px-4 pb-4 prose max-w-none">
-                            {@html renderRichText(faq.fields.answer)}
+                            {@html renderRichText(faq?.fields?.answer)}
                         </div>
                     </details>
                 </div>

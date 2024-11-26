@@ -8,7 +8,7 @@
   
     const navLinks: NavLink[] = [
       { href: '/', label: 'Home' },
-      { href: '#calendar', label: 'Calendar' },
+      { href: '/#calendar', label: 'Calendar' },
       { href: '/locations', label: 'Routes' },
       { href: '/faq', label: 'FAQ' }
     ];
