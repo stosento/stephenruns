@@ -109,9 +109,6 @@
                 <RichTextRenderer document={location.description} />
               </div>
             {/if}
-            <p class="text-sm text-gray-600 mt-2">
-              Area Radius: {location.radius}m
-            </p>
           </div>
         {/each}
       </div>
