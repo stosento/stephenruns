@@ -101,7 +101,7 @@
 				</div>
 
 				<!-- Locations List Section -->
-				<div class="lg:col-span-1 space-y-4 max-h-[600px] overflow-y-auto">
+				<div class="lg:col-span-1 space-y-4 max-h-[1200px] overflow-y-auto">
 					{#each ['RUN', 'XC SKI'] as workoutType}
 						<div class="mb-8">
 							<!-- Section container -->
@@ -116,16 +116,19 @@
 							{#each locations.filter((loc) => loc.workoutType === workoutType) as location}
 								<div
 									id="location-{location.name.replace(/\s+/g, '-')}"
-									class="bg-white shadow rounded-lg p-6 mx-2 mb-4 transition-all duration-200
-                                {selectedLocation?.name === location.name ? 'ring-2' : ''}
-                                {workoutType === 'RUN'
-										? 'ring-blue-500 hover:bg-blue-50'
-										: 'ring-green-500 hover:bg-green-50'}"
+									class="bg-white shadow rounded-lg p-6 mx-2 mb-4 transition-all duration-200"
+									class:ring-2={selectedLocation?.name === location.name}
+									class:ring-blue-500={workoutType === 'RUN'}
+									class:ring-green-500={workoutType !== 'RUN'}
+									class:hover:bg-blue-50={workoutType === 'RUN'}
+									class:hover:bg-green-50={workoutType !== 'RUN'}
+									role="button"
 									on:click={() => handleMarkerClick(location)}
 								>
 									<h3
-										class="text-xl font-semibold mb-2
-                                {workoutType === 'RUN' ? 'text-blue-700' : 'text-green-700'}"
+										class="text-xl font-semibold mb-2"
+										class:text-blue-700={workoutType === 'RUN'}
+										class:text-green-700={workoutType !== 'RUN'}
 									>
 										{location.name}
 									</h3>

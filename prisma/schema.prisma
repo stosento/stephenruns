@@ -13,17 +13,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Run {
-  id        String   @id @default(cuid())
-  name      String
-  date      DateTime
+enum EventType {
+  RUN
+  XC_SKI
+}
+
+model Event {
+  id           String   @id @default(cuid())
+  name         String
+  date         DateTime
+  type         EventType
   participants Participant[]
 }
 
 model Participant {
   id        String   @id @default(cuid())
   userId    String
-  runId     String
+  eventId   String
   joinedAt  DateTime @default(now())
-  run       Run      @relation(fields: [runId], references: [id])
+  event     Event      @relation(fields: [eventId], references: [id])
 }
