@@ -17,6 +17,7 @@ export async function GET() {
 export async function POST({ request }) {
 	try {
 		const data = await request.json();
+		console.log('data: ', data);
 
 		// Validate event type
 		if (!Object.values(EventType).includes(data.type)) {
