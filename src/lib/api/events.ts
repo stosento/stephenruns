@@ -4,6 +4,7 @@ import { EventType } from '@prisma/client';
 import type { Event, Participant } from '@prisma/client';
 
 type CreateEventInput = {
+	id: string;
 	name: string;
 	date: Date;
 	type: EventType;
@@ -21,6 +22,7 @@ export async function createEvent(data: CreateEventInput) {
 	try {
 		return await prisma.event.create({
 			data: {
+				id: data.id,
 				name: data.name,
 				date: data.date,
 				type: data.type
@@ -44,13 +46,14 @@ export async function getEvent(id: string) {
 	});
 }
 
-export async function addParticipantToEvent(eventId: string, userId: string) {
+export async function addParticipantToEvent(eventId: string, userId: string, name: string) {
 	return await prisma.event.update({
 		where: { id: eventId },
 		data: {
 			participants: {
 				create: {
-					userId
+					userId: userId,
+					name: name
 				}
 			}
 		},

@@ -27,7 +27,7 @@ export async function POST({ request }) {
 		// Convert date string to Date object
 		const eventData = {
 			...data,
-			date: new Date(data.date)
+			date: new Date(data.date.dateTime)
 		};
 
 		const newEvent = await createEvent(eventData);

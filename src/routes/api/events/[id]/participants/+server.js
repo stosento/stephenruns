@@ -16,8 +16,8 @@ export async function GET({ params }) {
 
 export async function POST({ params, request }) {
 	try {
-		const { userId } = await request.json();
-		const updatedEvent = await addParticipantToEvent(params.id, userId);
+		const { userId, name } = await request.json();
+		const updatedEvent = await addParticipantToEvent(params.id, userId, name);
 		return json(updatedEvent);
 	} catch (error) {
 		return json({ error: 'Failed to add participant' }, { status: 500 });

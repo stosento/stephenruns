@@ -1,8 +1,6 @@
 interface CookieOptions {
 	path?: string;
 	maxAge?: number;
-	secure?: boolean;
-	httpOnly?: boolean;
 	sameSite?: 'strict' | 'lax' | 'none';
 }
 
@@ -31,6 +29,8 @@ export function setCookie(name: string, value: string, options: CookieOptions = 
 			updatedCookie += '=' + value;
 		}
 	}
+
+	console.log('updatedCookie: ', updatedCookie);
 
 	document.cookie = updatedCookie;
 }

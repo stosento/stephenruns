@@ -118,10 +118,6 @@
 		}
 	}
 
-	function showNameEntryForm(event: any) {}
-
-	function submitNameEntryForm(event: any, name: any) {}
-
 	// Modify handleAddToEventClick to show name input
 	function handleAddToEventClick(event: any) {
 		currentEventForName = event;
@@ -130,19 +126,20 @@
 
 	// Add new function to handle name submission
 	async function handleNameSubmit() {
+		console.log('submitting name');
 		if (!participantName.trim() || !currentEventForName) return;
 
 		try {
 			// Get userId from cookies as before
 			let userId = getCookie('userId');
+			console.log('userId: ', userId);
 			if (!userId) {
 				userId =
 					Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+				console.log('generated: ', userId);
 				setCookie('userId', userId, {
 					path: '/',
 					maxAge: 60 * 60 * 24 * 30,
-					secure: process.env.NODE_ENV === 'production',
-					httpOnly: true,
 					sameSite: 'lax'
 				});
 			}
@@ -157,9 +154,9 @@
 					},
 					body: JSON.stringify({
 						id: currentEventForName.id,
-						title: currentEventForName.title,
-						start: currentEventForName.start,
-						end: currentEventForName.end
+						name: currentEventForName.summary,
+						date: currentEventForName.start,
+						type: currentEventForName.eventType
 					})
 				});
 
