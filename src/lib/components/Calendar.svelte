@@ -27,6 +27,10 @@
 	let selectedDate: number | null = null;
 	let selectedEvents: any[] = [];
 
+	// Participants state
+	let eventParticipants: Record<string, any[]> = {};
+	let isLoadingParticipants = false;
+
 	// Calendar navigation
 	function previousMonth() {
 		currentDate = new Date(currentYear, currentMonth - 1);
@@ -67,13 +71,47 @@
 		});
 	}
 
+	// Fetch participants for events
+	async function fetchParticipantsForEvents(events: any[]) {
+		isLoadingParticipants = true;
+		try {
+			const participantsPromises = events.map(async (event) => {
+				const response = await fetch(`/api/events/${event.id}/participants`);
+				if (response.ok) {
+					const participants = await response.json();
+					return { eventId: event.id, participants };
+				}
+				return { eventId: event.id, participants: [] };
+			});
+
+			const results = await Promise.all(participantsPromises);
+
+			// Convert array of results to object with eventId as key
+			const participantsMap: Record<string, any[]> = {};
+			results.forEach((result) => {
+				participantsMap[result.eventId] = result.participants;
+			});
+
+			eventParticipants = participantsMap;
+		} catch (error) {
+			console.error('Error fetching participants:', error);
+		} finally {
+			isLoadingParticipants = false;
+		}
+	}
+
 	// Handle day click
-	function handleDayClick(day: number) {
+	async function handleDayClick(day: number) {
 		const dayEvents = getEventsForDay(day);
-		//TODO - Make a call to retrieve event from DATABASE
 		if (dayEvents.length > 0) {
 			selectedDate = day;
 			selectedEvents = dayEvents;
+
+			// Set loading state and fetch participants BEFORE showing the modal
+			isLoadingParticipants = true;
+			await fetchParticipantsForEvents(dayEvents);
+
+			// Now show the modal after data is loaded
 			showModal = true;
 		}
 	}
@@ -118,6 +156,19 @@
 		}
 	}
 
+	// Check if current user is already a participant
+	function isUserParticipant(eventId: string): boolean {
+		const userId = getCookie('userId');
+		if (!userId) return false;
+
+		// Ensure we have participants data for this event
+		if (!eventParticipants[eventId] || !Array.isArray(eventParticipants[eventId])) {
+			return false;
+		}
+
+		return eventParticipants[eventId].some((participant) => participant.userId === userId);
+	}
+
 	// Modify handleAddToEventClick to show name input
 	function handleAddToEventClick(event: any) {
 		currentEventForName = event;
@@ -126,17 +177,14 @@
 
 	// Add new function to handle name submission
 	async function handleNameSubmit() {
-		console.log('submitting name');
 		if (!participantName.trim() || !currentEventForName) return;
 
 		try {
 			// Get userId from cookies as before
 			let userId = getCookie('userId');
-			console.log('userId: ', userId);
 			if (!userId) {
 				userId =
 					Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-				console.log('generated: ', userId);
 				setCookie('userId', userId, {
 					path: '/',
 					maxAge: 60 * 60 * 24 * 30,
@@ -187,13 +235,35 @@
 			// Reset state
 			showNameInput = false;
 			participantName = '';
-			currentEventForName = null;
 
-			// Optionally close modal or show success message
-			// showModal = false;
+			// Refresh participants list
+			await fetchParticipantsForEvents([currentEventForName]);
+
+			currentEventForName = null;
 		} catch (error) {
 			console.error('Error handling event participation:', error);
 			throw error;
+		}
+	}
+
+	// New function to handle removing a participant
+	async function handleRemoveParticipant(event: any) {
+		try {
+			const userId = getCookie('userId');
+			if (!userId) return;
+
+			const response = await fetch(`/api/events/${event.id}/participants/${userId}`, {
+				method: 'DELETE'
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to remove participant');
+			}
+
+			// Refresh participants list
+			await fetchParticipantsForEvents([event]);
+		} catch (error) {
+			console.error('Error removing participant:', error);
 		}
 	}
 </script>
@@ -347,6 +417,22 @@
 								<p class="mt-3 text-gray-700 whitespace-pre-line">{event.description}</p>
 							{/if}
 
+							<!-- Participants List -->
+							<div class="mt-4 border-t pt-3 border-gray-200">
+								<h5 class="font-medium text-gray-800 mb-2">Participants:</h5>
+								{#if isLoadingParticipants}
+									<p class="text-sm text-gray-500">Loading participants...</p>
+								{:else if eventParticipants[event.id] && eventParticipants[event.id].length > 0}
+									<ul class="space-y-1">
+										{#each eventParticipants[event.id] as participant}
+											<li class="text-sm text-gray-600">{participant.name}</li>
+										{/each}
+									</ul>
+								{:else}
+									<p class="text-sm text-gray-500">No participants yet</p>
+								{/if}
+							</div>
+
 							<!-- Name input and buttons -->
 							{#if showNameInput && currentEventForName?.id === event.id}
 								<div class="mt-4 space-y-3">
@@ -375,12 +461,19 @@
 										</button>
 									</div>
 								</div>
+							{:else if isUserParticipant(event.id)}
+								<button
+									on:click={() => handleRemoveParticipant(event)}
+									class="mt-3 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+								>
+									Remove Me from {event.eventType === 'RUN' ? 'Run' : 'Ski'}
+								</button>
 							{:else}
 								<button
 									on:click={() => handleAddToEventClick(event)}
-									class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+									class="mt-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
 								>
-									{event.eventType === 'RUN' ? 'Add Me to Run' : 'Add me to Ski'}
+									{event.eventType === 'RUN' ? 'Add Me to Run' : 'Add Me to Ski'}
 								</button>
 							{/if}
 						</div>
