@@ -239,6 +239,18 @@
 				throw new Error('Failed to add participant to event');
 			}
 
+			// Send notification to discord
+			await fetch('/api/discord', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					eventName: currentEventForName.summary,
+					participantName: participantName
+				})
+			});
+
 			// Reset state
 			showNameInput = false;
 			participantName = '';
