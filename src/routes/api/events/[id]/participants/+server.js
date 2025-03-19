@@ -23,13 +23,3 @@ export async function POST({ params, request }) {
 		return json({ error: 'Failed to add participant' }, { status: 500 });
 	}
 }
-
-export async function DELETE({ params, request }) {
-	try {
-		const { userId } = await request.json();
-		const updatedEvent = await removeParticipantFromEvent(params.id, userId);
-		return json(updatedEvent);
-	} catch (error) {
-		return json({ error: 'Failed to remove participant' }, { status: 500 });
-	}
-}

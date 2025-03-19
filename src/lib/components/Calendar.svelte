@@ -18,6 +18,11 @@
 		today.getMonth() === currentMonth &&
 		today.getFullYear() === currentYear;
 
+	$: isBeforeToday = (day: number) => {
+		const targetDate = new Date(currentYear, currentMonth, day);
+		return targetDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+	};
+
 	let participantName = '';
 	let showNameInput = false;
 	let currentEventForName: any = null;
@@ -102,6 +107,8 @@
 
 	// Handle day click
 	async function handleDayClick(day: number) {
+		if (isBeforeToday(day)) return;
+
 		const dayEvents = getEventsForDay(day);
 		if (dayEvents.length > 0) {
 			selectedDate = day;
@@ -237,7 +244,9 @@
 			participantName = '';
 
 			// Refresh participants list
-			await fetchParticipantsForEvents([currentEventForName]);
+			showModal = false;
+			await fetchParticipantsForEvents(selectedEvents);
+			showModal = true;
 
 			currentEventForName = null;
 		} catch (error) {
@@ -261,7 +270,9 @@
 			}
 
 			// Refresh participants list
-			await fetchParticipantsForEvents([event]);
+			showModal = false;
+			await fetchParticipantsForEvents(selectedEvents);
+			showModal = true;
 		} catch (error) {
 			console.error('Error removing participant:', error);
 		}
@@ -305,31 +316,33 @@
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<!-- svelte-ignore a11y-no-static-element-interactions -->
 				<div
-					class="aspect-square p-2 border border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors {isToday(
-						day
-					)
-						? 'bg-green-50'
-						: ''}"
+					class="aspect-square p-2 border border-gray-100 transition-colors
+					{isBeforeToday(day)
+						? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+						: 'hover:bg-gray-50 cursor-pointer'}
+					{isToday(day) ? 'bg-green-50' : ''}"
 					on:click={() => handleDayClick(day)}
 				>
 					<div class="text-sm mb-1 flex justify-between items-center">
 						<span class={isToday(day) ? 'font-semibold' : ''}>{day}</span>
-						{#if dayEvents.length > 0}
+						{#if dayEvents.length > 0 && !isBeforeToday(day)}
 							<span class="w-2 h-2 rounded-full bg-blue-500"></span>
 						{/if}
 					</div>
-					{#each dayEvents as event}
-						<div
-							class="text-xs p-1 mb-1 rounded truncate {event.eventType === 'RUN'
-								? 'bg-blue-100 text-blue-800'
-								: 'bg-green-100 text-green-800'}"
-							title={event.summary}
-						>
-							{event.summary} - {event.start.dateTime
-								? formatTime(event.start.dateTime)
-								: 'All Day'}
-						</div>
-					{/each}
+					{#if !isBeforeToday(day)}
+						{#each dayEvents as event}
+							<div
+								class="text-xs p-1 mb-1 rounded truncate {event.eventType === 'RUN'
+									? 'bg-blue-100 text-blue-800'
+									: 'bg-green-100 text-green-800'}"
+								title={event.summary}
+							>
+								{event.summary} - {event.start.dateTime
+									? formatTime(event.start.dateTime)
+									: 'All Day'}
+							</div>
+						{/each}
+					{/if}
 				</div>
 			{/each}
 		</div>
