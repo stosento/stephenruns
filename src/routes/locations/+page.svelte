@@ -148,9 +148,6 @@
 {/if}
 
 <style>
-	:global(.prose) {
-		max-width: none;
-	}
 
 	:global(.prose p) {
 		margin-top: 0.5em;
