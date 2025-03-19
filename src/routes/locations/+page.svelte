@@ -133,7 +133,7 @@
 										{location.name}
 									</h3>
 									{#if location.description}
-										<div class="prose prose-sm max-w-none">
+										<div class="prose prose-sm max-w-none min-h-none">
 											<RichTextRenderer document={location.description} />
 										</div>
 									{/if}
@@ -148,7 +148,6 @@
 {/if}
 
 <style>
-
 	:global(.prose p) {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
