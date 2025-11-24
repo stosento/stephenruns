@@ -247,7 +247,9 @@
 				},
 				body: JSON.stringify({
 					eventName: currentEventForName.summary,
-					participantName: participantName
+					eventStart: currentEventForName.start,
+					participantName: participantName,
+					actionType: 'ADD' 
 				})
 			});
 
@@ -280,6 +282,20 @@
 			if (!response.ok) {
 				throw new Error('Failed to remove participant');
 			}
+
+			// Send notification to discord
+			await fetch('/api/discord', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					eventName: event.summary,
+					eventStart: event.start,
+					participantName: participantName,
+					actionType: 'REMOVE' 
+				})
+			});
 
 			// Refresh participants list
 			showModal = false;
